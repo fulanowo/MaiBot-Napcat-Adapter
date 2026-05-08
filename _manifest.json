@@ -5,14 +5,14 @@
   "description": "Built-in NapCat adapter plugin for QQ / NapCat message gateway and platform actions.",
   "author": {
     "name": "MaiBot Team",
-    "url": "https://github.com/MaiM-with-u"
+    "url": "https://github.com/Mai-with-u"
   },
   "license": "GPL-v3.0-or-later",
   "urls": {
-    "repository": "https://github.com/MaiM-with-u/maibot",
-    "homepage": "https://github.com/MaiM-with-u/maibot",
-    "documentation": "https://github.com/MaiM-with-u/maibot",
-    "issues": "https://github.com/MaiM-with-u/maibot/issues"
+    "repository": "https://github.com/Mai-with-u/MaiBot-Napcat-Adapter",
+    "homepage": "https://github.com/Mai-with-u/MaiBot-Napcat-Adapter",
+    "documentation": "https://github.com/Mai-with-u/MaiBot-Napcat-Adapter",
+    "issues": "https://github.com/Mai-with-u/MaiBot-Napcat-Adapter/issues"
   },
   "host_application": {
     "min_version": "1.0.0",
