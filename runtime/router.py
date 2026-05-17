@@ -121,6 +121,10 @@ class NapCatEventRouter:
             self._logger.warning(f"NapCat 入站消息格式不受支持，已丢弃: {exc}")
             return
 
+        plain_text = str(message_dict.get("processed_plain_text") or "").strip()
+        if not runtime.regex_filter.is_message_allowed(plain_text, settings.filters):
+            return
+
         route_metadata = self._build_route_metadata(self_id, settings.napcat_server.connection_id)
         external_message_id = str(payload.get("message_id") or "").strip()
         accepted = await self._gateway_capability.route_message(

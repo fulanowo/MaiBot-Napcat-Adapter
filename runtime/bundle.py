@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from ..codecs.inbound import NapCatInboundCodec
 from ..codecs.notice import NapCatNoticeCodec
 from ..codecs.outbound import NapCatOutboundCodec
-from ..filters import NapCatChatFilter
+from ..filters import NapCatChatFilter, NapCatRegexFilter
 from ..heartbeat_monitor import NapCatHeartbeatMonitor
 from ..runtime_state import NapCatRuntimeStateManager
 from ..services import (
@@ -35,4 +35,5 @@ class NapCatRuntimeBundle:
     outbound_codec: NapCatOutboundCodec
     query_service: NapCatQueryService
     runtime_state: NapCatRuntimeStateManager
+    regex_filter: NapCatRegexFilter
     transport: NapCatTransportClient

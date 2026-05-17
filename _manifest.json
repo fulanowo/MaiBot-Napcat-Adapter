@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "version": "1.0.1",
-  "name": "napcat_adapter_builtin",
+  "name": "Napcat_Adapter",
   "description": "Built-in NapCat adapter plugin for QQ / NapCat message gateway and platform actions.",
   "author": {
     "name": "MaiBot Team",

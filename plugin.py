@@ -206,6 +206,13 @@ class NapCatAdapterPlugin(
                 "NapCat 聊天名单过滤已关闭：将忽略 group_list 与 private_list，仅保留 ban_user_id 和官方机器人屏蔽规则"
             )
 
+        runtime_bundle.regex_filter.reload_patterns(settings.filters.regex_filter_patterns)
+        if settings.filters.regex_filter_enabled and settings.filters.regex_filter_patterns:
+            self.ctx.logger.info(
+                f"NapCat 正则消息过滤已启用: 模式={settings.filters.regex_filter_mode}，"
+                f"规则数={len(settings.filters.regex_filter_patterns)}"
+            )
+
         runtime_bundle.transport.configure(settings.napcat_server)
         await runtime_bundle.transport.start()
 
