@@ -24,6 +24,32 @@ from .constants import (
 LOGGER = logging.getLogger("napcat_adapter.config")
 
 
+def _schema_i18n(
+    *,
+    label_en: str,
+    label_ja: str,
+    hint_en: Optional[str] = None,
+    hint_ja: Optional[str] = None,
+    placeholder_en: Optional[str] = None,
+    placeholder_ja: Optional[str] = None,
+) -> Dict[str, Dict[str, str]]:
+    """构造 WebUI 配置项多语言说明，保留外层中文字段兼容旧格式。"""
+
+    i18n: Dict[str, Dict[str, str]] = {
+        "en_US": {"label": label_en},
+        "ja_JP": {"label": label_ja},
+    }
+    if hint_en is not None:
+        i18n["en_US"]["hint"] = hint_en
+    if hint_ja is not None:
+        i18n["ja_JP"]["hint"] = hint_ja
+    if placeholder_en is not None:
+        i18n["en_US"]["placeholder"] = placeholder_en
+    if placeholder_ja is not None:
+        i18n["ja_JP"]["placeholder"] = placeholder_ja
+    return i18n
+
+
 class NapCatPluginOptions(PluginConfigBase):
     """插件级配置。"""
 
@@ -35,6 +61,12 @@ class NapCatPluginOptions(PluginConfigBase):
         description="是否启用 NapCat 适配器。",
         json_schema_extra={
             "hint": "关闭后插件会保持空闲，不会主动建立 NapCat WebSocket 连接。",
+            "i18n": _schema_i18n(
+                label_en="Enable adapter",
+                label_ja="アダプターを有効化",
+                hint_en="When disabled, the plugin stays idle and will not open a NapCat WebSocket connection.",
+                hint_ja="無効にすると、プラグインは待機状態のままになり、NapCat WebSocket 接続を開始しません。",
+            ),
             "label": "启用适配器",
             "order": 0,
         },
@@ -45,6 +77,7 @@ class NapCatPluginOptions(PluginConfigBase):
         json_schema_extra={
             "disabled": True,
             "hidden": True,
+            "i18n": _schema_i18n(label_en="Config version", label_ja="設定バージョン"),
             "label": "配置版本",
             "order": 99,
         },
@@ -86,6 +119,14 @@ class NapCatServerConfig(PluginConfigBase):
         description="NapCat WebSocket 服务主机地址。",
         json_schema_extra={
             "hint": "通常为运行 NapCat 的宿主机地址，默认使用本机回环地址。",
+            "i18n": _schema_i18n(
+                label_en="Host address",
+                label_ja="ホストアドレス",
+                hint_en="Usually the host running NapCat. Defaults to the local loopback address.",
+                hint_ja="通常は NapCat を実行しているホストです。既定ではローカルのループバックアドレスを使用します。",
+                placeholder_en="127.0.0.1",
+                placeholder_ja="127.0.0.1",
+            ),
             "label": "主机地址",
             "order": 0,
             "placeholder": "127.0.0.1",
@@ -96,6 +137,12 @@ class NapCatServerConfig(PluginConfigBase):
         description="NapCat WebSocket 服务端口。",
         json_schema_extra={
             "hint": "与 NapCat 正向 WebSocket 服务监听端口保持一致。",
+            "i18n": _schema_i18n(
+                label_en="Port",
+                label_ja="ポート",
+                hint_en="Keep this consistent with the NapCat forward WebSocket listening port.",
+                hint_ja="NapCat の正方向 WebSocket 待受ポートと一致させてください。",
+            ),
             "label": "端口",
             "order": 1,
         },
@@ -105,6 +152,14 @@ class NapCatServerConfig(PluginConfigBase):
         description="NapCat 访问令牌，未启用鉴权时可留空。",
         json_schema_extra={
             "hint": "若 NapCat 开启了访问令牌校验，请在这里填写相同的 token。",
+            "i18n": _schema_i18n(
+                label_en="Access token",
+                label_ja="アクセストークン",
+                hint_en="If NapCat access token verification is enabled, enter the same token here.",
+                hint_ja="NapCat でアクセストークン検証を有効にしている場合は、同じ token をここに入力してください。",
+                placeholder_en="Optional",
+                placeholder_ja="空欄可",
+            ),
             "input_type": "password",
             "label": "访问令牌",
             "order": 2,
@@ -116,6 +171,12 @@ class NapCatServerConfig(PluginConfigBase):
         description="心跳超时判定间隔，单位为秒。",
         json_schema_extra={
             "hint": "用于判断 NapCat 连接是否失活，必须大于 0。",
+            "i18n": _schema_i18n(
+                label_en="Heartbeat interval (sec)",
+                label_ja="ハートビート間隔（秒）",
+                hint_en="Used to detect whether the NapCat connection is stale. Must be greater than 0.",
+                hint_ja="NapCat 接続が失活していないかを判定する間隔です。0 より大きい値にしてください。",
+            ),
             "label": "心跳间隔（秒）",
             "order": 3,
             "step": 1,
@@ -126,6 +187,12 @@ class NapCatServerConfig(PluginConfigBase):
         description="连接断开后的重连等待时间，单位为秒。",
         json_schema_extra={
             "hint": "连接断开后会等待该时长再尝试重新连接。",
+            "i18n": _schema_i18n(
+                label_en="Reconnect delay (sec)",
+                label_ja="再接続待機（秒）",
+                hint_en="After a disconnect, wait this long before trying to reconnect.",
+                hint_ja="接続が切断された後、再接続を試すまでこの時間待機します。",
+            ),
             "label": "重连等待（秒）",
             "order": 4,
             "step": 1,
@@ -136,6 +203,12 @@ class NapCatServerConfig(PluginConfigBase):
         description="调用 NapCat 动作接口的超时时间，单位为秒。",
         json_schema_extra={
             "hint": "发送消息、查询信息等动作会在超时后报错。",
+            "i18n": _schema_i18n(
+                label_en="Action timeout (sec)",
+                label_ja="アクションタイムアウト（秒）",
+                hint_en="Actions such as sending messages or querying info fail after this timeout.",
+                hint_ja="メッセージ送信や情報取得などのアクションは、この時間を超えるとエラーになります。",
+            ),
             "label": "动作超时（秒）",
             "order": 5,
             "step": 1,
@@ -146,6 +219,14 @@ class NapCatServerConfig(PluginConfigBase):
         description="可选连接标识，用于区分多条 NapCat 链路。",
         json_schema_extra={
             "hint": "当存在多条 NapCat 连接时，可用它作为路由作用域标识。",
+            "i18n": _schema_i18n(
+                label_en="Connection ID",
+                label_ja="接続識別子",
+                hint_en="When multiple NapCat connections exist, use this as the routing scope identifier.",
+                hint_ja="複数の NapCat 接続がある場合、ルーティングスコープの識別子として使用できます。",
+                placeholder_en="For example: primary",
+                placeholder_ja="例：primary",
+            ),
             "label": "连接标识",
             "order": 6,
             "placeholder": "例如：primary",
@@ -241,6 +322,12 @@ class NapCatChatConfig(PluginConfigBase):
         description="是否启用群聊与私聊名单过滤。",
         json_schema_extra={
             "hint": "关闭后将忽略群聊名单和私聊名单，仅保留全局屏蔽用户与官方机器人屏蔽规则。",
+            "i18n": _schema_i18n(
+                label_en="Enable chat list filter",
+                label_ja="チャットリストフィルターを有効化",
+                hint_en="When disabled, group and private lists are ignored; only global banned users and official bot blocking remain.",
+                hint_ja="無効にすると、グループ/個人チャットのリストを無視し、全体のブロックユーザーと公式 Bot ブロックのみを適用します。",
+            ),
             "label": "启用聊天名单过滤",
             "order": 0,
         },
@@ -250,6 +337,12 @@ class NapCatChatConfig(PluginConfigBase):
         description="是否显示未通过聊天名单过滤而被丢弃的消息日志。",
         json_schema_extra={
             "hint": "关闭后不会记录群聊/私聊因未通过聊天名单过滤而被丢弃的日志，默认关闭以减少刷屏。",
+            "i18n": _schema_i18n(
+                label_en="Show dropped chat-list logs",
+                label_ja="チャットリストで破棄されたログを表示",
+                hint_en="When disabled, dropped group/private chat-list logs are not recorded. Default off to reduce log noise.",
+                hint_ja="無効にすると、チャットリストで破棄されたグループ/個人チャットのログを記録しません。ログの増加を抑えるため既定ではオフです。",
+            ),
             "label": "显示聊天名单丢弃日志",
             "order": 1,
         },
@@ -259,6 +352,12 @@ class NapCatChatConfig(PluginConfigBase):
         description="群聊名单模式。",
         json_schema_extra={
             "hint": "白名单模式只接收列表内群聊，黑名单模式则忽略列表内群聊。",
+            "i18n": _schema_i18n(
+                label_en="Group list mode",
+                label_ja="グループリストモード",
+                hint_en="Whitelist mode only accepts listed groups; blacklist mode ignores listed groups.",
+                hint_ja="ホワイトリストではリスト内のグループのみ受信し、ブラックリストではリスト内のグループを無視します。",
+            ),
             "label": "群聊名单模式",
             "order": 2,
         },
@@ -268,6 +367,14 @@ class NapCatChatConfig(PluginConfigBase):
         description="群聊名单中的群号列表。",
         json_schema_extra={
             "hint": "群号会被统一转换为字符串并自动去重。",
+            "i18n": _schema_i18n(
+                label_en="Group list",
+                label_ja="グループリスト",
+                hint_en="Group IDs are normalized to strings and deduplicated automatically.",
+                hint_ja="グループ ID は文字列に正規化され、自動的に重複排除されます。",
+                placeholder_en="Enter group ID",
+                placeholder_ja="グループ ID を入力",
+            ),
             "label": "群聊名单",
             "order": 3,
             "placeholder": "请输入群号",
@@ -278,6 +385,12 @@ class NapCatChatConfig(PluginConfigBase):
         description="私聊名单模式。",
         json_schema_extra={
             "hint": "白名单模式只接收列表内私聊，黑名单模式则忽略列表内私聊。",
+            "i18n": _schema_i18n(
+                label_en="Private list mode",
+                label_ja="個人チャットリストモード",
+                hint_en="Whitelist mode only accepts listed private chats; blacklist mode ignores listed private chats.",
+                hint_ja="ホワイトリストではリスト内の個人チャットのみ受信し、ブラックリストではリスト内の個人チャットを無視します。",
+            ),
             "label": "私聊名单模式",
             "order": 4,
         },
@@ -287,6 +400,14 @@ class NapCatChatConfig(PluginConfigBase):
         description="私聊名单中的用户 ID 列表。",
         json_schema_extra={
             "hint": "用户 ID 会被统一转换为字符串并自动去重。",
+            "i18n": _schema_i18n(
+                label_en="Private list",
+                label_ja="個人チャットリスト",
+                hint_en="User IDs are normalized to strings and deduplicated automatically.",
+                hint_ja="ユーザー ID は文字列に正規化され、自動的に重複排除されます。",
+                placeholder_en="Enter user ID",
+                placeholder_ja="ユーザー ID を入力",
+            ),
             "label": "私聊名单",
             "order": 5,
             "placeholder": "请输入用户 ID",
@@ -297,6 +418,14 @@ class NapCatChatConfig(PluginConfigBase):
         description="全局屏蔽的用户 ID 列表。",
         json_schema_extra={
             "hint": "这些用户的消息会在进入 Host 之前被直接丢弃。",
+            "i18n": _schema_i18n(
+                label_en="Globally blocked users",
+                label_ja="全体ブロックユーザー",
+                hint_en="Messages from these users are dropped before entering the Host.",
+                hint_ja="これらのユーザーからのメッセージは Host に入る前に破棄されます。",
+                placeholder_en="Enter user ID",
+                placeholder_ja="ユーザー ID を入力",
+            ),
             "label": "全局屏蔽用户",
             "order": 6,
             "placeholder": "请输入用户 ID",
@@ -307,6 +436,12 @@ class NapCatChatConfig(PluginConfigBase):
         description="是否屏蔽 QQ 官方机器人消息。",
         json_schema_extra={
             "hint": "开启后会忽略来自 QQ 官方机器人或频道机器人的消息。",
+            "i18n": _schema_i18n(
+                label_en="Block official bots",
+                label_ja="公式 Bot をブロック",
+                hint_en="When enabled, messages from QQ official bots or channel bots are ignored.",
+                hint_ja="有効にすると、QQ 公式 Bot またはチャンネル Bot からのメッセージを無視します。",
+            ),
             "label": "屏蔽官方机器人",
             "order": 7,
         },
@@ -352,6 +487,12 @@ class NapCatFilterConfig(PluginConfigBase):
         description="是否忽略机器人自身发送的消息。",
         json_schema_extra={
             "hint": "建议保持开启，避免机器人处理自己刚刚发出的消息。",
+            "i18n": _schema_i18n(
+                label_en="Ignore self messages",
+                label_ja="自身のメッセージを無視",
+                hint_en="Recommended on to avoid the bot processing messages it just sent.",
+                hint_ja="Bot が自分で送信した直後のメッセージを処理しないよう、有効のままにすることを推奨します。",
+            ),
             "label": "忽略自身消息",
             "order": 0,
         },
