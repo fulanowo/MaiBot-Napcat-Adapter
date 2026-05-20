@@ -497,6 +497,60 @@ class NapCatFilterConfig(PluginConfigBase):
             "order": 0,
         },
     )
+    regex_filter_enabled: bool = Field(
+        default=False,
+        description="是否启用正则表达式消息过滤。",
+        json_schema_extra={
+            "hint": "开启后将根据正则表达式规则过滤入站消息。",
+            "label": "启用正则过滤",
+            "order": 1,
+        },
+    )
+    regex_filter_mode: Literal["blacklist", "whitelist"] = Field(
+        default="blacklist",
+        description="正则过滤模式。blacklist 匹配则丢弃，whitelist 仅放行匹配的消息。",
+        json_schema_extra={
+            "hint": "黑名单模式下匹配正则的消息会被丢弃；白名单模式下仅匹配正则的消息会被放行。",
+            "label": "正则过滤模式",
+            "order": 2,
+        },
+    )
+    regex_filter_patterns: List[str] = Field(
+        default_factory=list,
+        description="正则表达式列表，支持 Python re 模块语法。",
+        json_schema_extra={
+            "hint": "每条规则为一个 Python 正则表达式，消息文本将逐条匹配。无效的正则表达式会在启动时记录警告并跳过。",
+            "label": "正则表达式列表",
+            "order": 3,
+            "placeholder": r"例如：^广告.*|spam",
+        },
+    )
+    regex_filter_show_dropped: bool = Field(
+        default=False,
+        description="是否显示未通过正则过滤而被丢弃的消息日志。",
+        json_schema_extra={
+            "hint": "关闭后不会记录因正则过滤而被丢弃的日志，默认关闭以减少刷屏。",
+            "label": "显示正则过滤丢弃日志",
+            "order": 4,
+        },
+    )
+
+    @field_validator("regex_filter_mode", mode="before")
+    @classmethod
+    def _normalize_regex_filter_mode(cls, value: Any) -> Literal["whitelist", "blacklist"]:
+        """规范化正则过滤模式字段。"""
+        normalized_value = _normalize_string(value)
+        if normalized_value == "whitelist":
+            return "whitelist"
+        if normalized_value not in ("whitelist", "blacklist"):
+            LOGGER.warning(f"无效的 regex_filter_mode 值 '{value}'，已回退到 'blacklist'")
+        return "blacklist"
+
+    @field_validator("regex_filter_patterns", mode="before")
+    @classmethod
+    def _normalize_regex_filter_patterns(cls, value: Any) -> List[str]:
+        """规范化正则表达式列表字段。"""
+        return _normalize_string_list(value)
 
 
 class NapCatPluginSettings(PluginConfigBase):
