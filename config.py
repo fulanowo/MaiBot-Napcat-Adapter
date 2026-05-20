@@ -539,7 +539,12 @@ class NapCatFilterConfig(PluginConfigBase):
     @classmethod
     def _normalize_regex_filter_mode(cls, value: Any) -> Literal["whitelist", "blacklist"]:
         """规范化正则过滤模式字段。"""
-        return _normalize_list_mode(value)
+        normalized_value = _normalize_string(value)
+        if normalized_value == "whitelist":
+            return "whitelist"
+        if normalized_value not in ("whitelist", "blacklist"):
+            LOGGER.warning(f"无效的 regex_filter_mode 值 '{value}'，已回退到 'blacklist'")
+        return "blacklist"
 
     @field_validator("regex_filter_patterns", mode="before")
     @classmethod
