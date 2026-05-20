@@ -61,6 +61,12 @@ class NapCatRegexFilter:
             return True
 
         if not self._compiled_patterns:
+            if filter_config.regex_filter_mode == "whitelist":
+                self._log_regex_rejection(
+                    filter_config.regex_filter_show_dropped,
+                    "NapCat 白名单正则过滤器无有效规则，消息被丢弃",
+                )
+                return False
             return True
 
         matched = self._matches_any_pattern(plain_text)
