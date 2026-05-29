@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, TYPE_CHECKING
 
 import hashlib
 import json
@@ -27,7 +27,12 @@ class NapCatInboundCardMixin:
         @staticmethod
         def _encode_binary(binary_data: bytes) -> str: ...
 
-    async def _build_json_segments(self, segment_data: Mapping[str, Any]) -> NapCatSegments:
+    async def _build_json_segments(
+        self,
+        segment_data: Mapping[str, Any],
+        *,
+        platform_card_payloads: Optional[List[Dict[str, Any]]] = None,
+    ) -> NapCatSegments:
         """将 JSON 卡片最佳努力转换为消息段列表。
 
         Args:
@@ -62,6 +67,14 @@ class NapCatInboundCardMixin:
                 return music_segments
 
         if app_name == "com.tencent.miniapp_01":
+            if platform_card_payloads is not None:
+                platform_card_payloads.append(
+                    {
+                        "type": "miniapp_card",
+                        "app": app_name,
+                        "payload": dict(parsed_json),
+                    }
+                )
             return await self._build_preview_text_segments(
                 self._build_miniapp_text(meta),
                 self._extract_preview_url(meta, "detail_1"),
