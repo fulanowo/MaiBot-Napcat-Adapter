@@ -53,7 +53,7 @@ class NapCatInboundCodec(NapCatInboundCardMixin, NapCatInboundTextMixin):
         user_nickname = str(sender.get("nickname") or sender.get("card") or sender_user_id).strip() or sender_user_id
         user_cardname = str(sender.get("card") or "").strip() or None
 
-        raw_message, is_at = await self.convert_segments(payload, self_id)
+        raw_message, is_at, platform_card_payloads = await self.convert_segments_with_metadata(payload, self_id)
         if not raw_message:
             raw_message = [self._build_text_segment("[unsupported]")]
 
@@ -67,6 +67,8 @@ class NapCatInboundCodec(NapCatInboundCardMixin, NapCatInboundTextMixin):
             additional_config["platform_io_target_group_id"] = group_id
         else:
             additional_config["platform_io_target_user_id"] = sender_user_id
+        if platform_card_payloads:
+            additional_config["platform_card_payloads"] = platform_card_payloads
 
         message_info: Dict[str, Any] = {
             "user_info": {
@@ -110,9 +112,34 @@ class NapCatInboundCodec(NapCatInboundCardMixin, NapCatInboundTextMixin):
         Raises:
             ValueError: 当载荷缺少结构化 ``message`` 段列表时抛出。
         """
+        raw_message, is_at, _platform_card_payloads = await self.convert_segments_with_metadata(payload, self_id)
+        return raw_message, is_at
+
+    async def convert_segments_with_metadata(
+        self,
+        payload: NapCatPayload,
+        self_id: str,
+    ) -> Tuple[NapCatSegments, bool, List[Dict[str, Any]]]:
+        """将 OneBot 消息段转换为 Host 消息段结构，并收集平台卡片元数据。
+
+        Args:
+            payload: OneBot 原始消息事件。
+            self_id: 当前机器人账号 ID。
+
+        Returns:
+            Tuple[NapCatSegments, bool, List[Dict[str, Any]]]: 转换后的消息段列表、是否 @ 到当前机器人，
+            以及不参与纯文本处理的平台卡片元数据。
+        """
         message_payload = self._require_message_segments(payload)
         group_id = str(payload.get("group_id") or "").strip()
-        return await self._convert_incoming_segments(message_payload, self_id, group_id)
+        platform_card_payloads: List[Dict[str, Any]] = []
+        raw_message, is_at = await self._convert_incoming_segments(
+            message_payload,
+            self_id,
+            group_id,
+            platform_card_payloads=platform_card_payloads,
+        )
+        return raw_message, is_at, platform_card_payloads
 
     def _require_message_segments(self, payload: NapCatPayload) -> NapCatIncomingSegments:
         """从 NapCat 载荷中提取结构化消息段列表。
@@ -165,6 +192,8 @@ class NapCatInboundCodec(NapCatInboundCardMixin, NapCatInboundTextMixin):
         message_payload: NapCatIncomingSegments,
         self_id: str,
         group_id: str,
+        *,
+        platform_card_payloads: Optional[List[Dict[str, Any]]] = None,
     ) -> Tuple[NapCatSegments, bool]:
         """将结构化 OneBot 消息段转换为 Host 消息段结构。
 
@@ -241,7 +270,12 @@ class NapCatInboundCodec(NapCatInboundCardMixin, NapCatInboundTextMixin):
                 continue
 
             if segment_type == "json":
-                converted_segments.extend(await self._build_json_segments(segment_data))
+                converted_segments.extend(
+                    await self._build_json_segments(
+                        segment_data,
+                        platform_card_payloads=platform_card_payloads,
+                    )
+                )
                 continue
 
             if segment_type == "forward":
